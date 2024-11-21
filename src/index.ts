@@ -1,48 +1,50 @@
 // src/index.ts
-import cron from 'node-cron';
-import { BrowserService } from './services/browser.service';
-import { NotificationService } from './services/notification.service';
-import { logger } from './services/logger';
-import { CONFIG } from './config/environment';
+const CRON_PATTERN = '*/15 * * * *';
+const cron = require('node-cron');
+const { BrowserService } = require('./services/browser.service');
+const { NotificationService } = require('./services/notification.service');
+const { logger } = require('./services/logger');
+// import { CONFIG } from './config/constants';
+
+// src/index.ts
+const CONFIG = {
+    LOGIN_EMAIL: 'ricardo.thenu@gmail.com',
+    LOGIN_PASSWORD: 'Teste#2024',
+    WEBHOOK_URL: 'https://webhook.site/0d5ade98-5f61-44ba-a3d3-e54bb6762567'
+};
+
 
 async function checkAvailability() {
     const browser = new BrowserService();
-
     try {
         await browser.init();
-        const loginSuccess = await browser.login(CONFIG.LOGIN_EMAIL, CONFIG.LOGIN_PASSWORD);
-
+        const loginSuccess = await browser.login(String(CONFIG.LOGIN_EMAIL), String(CONFIG.LOGIN_PASSWORD));
         if (!loginSuccess) {
             await NotificationService.notify(false, false, 'Falha no login');
             return;
         }
-
         const result = await browser.checkCitizenshipAvailability();
         await NotificationService.notify(
             result.isOnline,
             result.success,
             result.message
         );
-
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Error in availability check', error);
         await NotificationService.notify(
             false,
             false,
-            `Erro na verificação: ${error.message}`
+            `Erro na verificação: ${error?.message || 'Erro desconhecido'}`
         );
     } finally {
         await browser.cleanup();
     }
 }
 
-// Inicia o cronograma de verificações
-cron.schedule(CONFIG.CHECK_INTERVAL, checkAvailability);
-
-// Primeira verificação imediata
+cron.schedule(CRON_PATTERN, checkAvailability);
 checkAvailability();
 
 logger.info('Service started', {
-    checkInterval: CONFIG.CHECK_INTERVAL,
+    checkInterval: CRON_PATTERN,
     webhookUrl: CONFIG.WEBHOOK_URL
 });

@@ -6,3 +6,4 @@ export const CONFIG = {
     LOGIN_PASSWORD: process.env.LOGIN_PASSWORD || '',
     SITE_URL: process.env.SITE_URL || 'https://prenotami.esteri.it',
 }
+
