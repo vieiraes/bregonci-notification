@@ -10,7 +10,7 @@ const { logger } = require('./services/logger');
 const CONFIG = {
     LOGIN_EMAIL: 'ricardo.thenu@gmail.com',
     LOGIN_PASSWORD: 'Teste#2024',
-    WEBHOOK_URL: 'https://webhook.site/0d5ade98-5f61-44ba-a3d3-e54bb6762567'
+    WEBHOOK_URL: 'https://webhook.site/9dd118e9-b2b6-4b0b-adc7-bf9334f05913'
 };
 
 
