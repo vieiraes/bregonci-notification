@@ -1,8 +1,6 @@
 const axios = require('axios');
 import { logger } from './logger';
-
-const WEBHOOK_URL = process.env.WEBHOOK_URL || 'https://webhook.site/0d5ade98-5f61-44ba-a3d3-e54bb6762567';
-
+import { CONFIG } from '../index'
 
 interface WebhookPayload {
     timestamp: string;
@@ -12,13 +10,11 @@ interface WebhookPayload {
     attempt: number;
 }
 
-
 class NotificationService {
     private static attempt = 0;
-
     static async notify(isOnline: boolean, success: boolean, message: string) {
         this.attempt++;
-
+        
         const payload = {
             timestamp: new Date().toISOString(),
             status: isOnline ? 'ONLINE' : 'OFFLINE',
@@ -26,16 +22,39 @@ class NotificationService {
             message,
             attempt: this.attempt
         };
-
         try {
-            if (!WEBHOOK_URL) {
+            if (!CONFIG.WEBHOOK_URL) {
                 throw new Error('Webhook URL não configurada');
             }
-            await axios.post(WEBHOOK_URL, payload);
-            logger.info('Webhook notification sent', { payload });
-        } catch (error) {
-            logger.error('Failed to send webhook notification', { error, payload });
-            throw error;
+            logger.info('Tentando enviar webhook para:', { url: CONFIG.WEBHOOK_URL });
+            const response = await axios.post(CONFIG.WEBHOOK_URL, payload, {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                timeout: 7000 // 5 segundos de timeout
+            });
+            logger.info('Webhook enviado com sucesso', { 
+                status: response.status,
+                statusText: response.statusText,
+                payload 
+            });
+        } catch (error: any) {
+            if (axios.isAxiosError(error)) {
+                logger.error('Erro no envio do webhook', {
+                    message: error.message,
+                    url: CONFIG.WEBHOOK_URL,
+                    status: error.response?.status,
+                    statusText: error.response?.statusText,
+                    data: error.response?.data,
+                    payload
+                });
+            } else {
+                logger.error('Erro desconhecido ao enviar webhook', {
+                    error,
+                    payload
+                });
+            }
+            // Removido o throw error para não crashar o app
         }
     }
 }

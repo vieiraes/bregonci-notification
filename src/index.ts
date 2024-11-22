@@ -1,16 +1,16 @@
-// src/index.ts
-const CRON_PATTERN = '*/15 * * * *';
+require('dotenv').config()
+// const CRON_PATTERN = '*/15 * * * *';
 const cron = require('node-cron');
 const { BrowserService } = require('./services/browser.service');
 const { NotificationService } = require('./services/notification.service');
 const { logger } = require('./services/logger');
-// import { CONFIG } from './config/constants';
 
-// src/index.ts
-const CONFIG = {
-    LOGIN_EMAIL: 'ricardo.thenu@gmail.com',
-    LOGIN_PASSWORD: 'Teste#2024',
-    WEBHOOK_URL: 'https://webhook.site/9dd118e9-b2b6-4b0b-adc7-bf9334f05913'
+export const CONFIG = {
+    LOGIN_EMAIL: process.env.LOGIN_EMAIL,
+    LOGIN_PASSWORD: process.env.LOGIN_PASSWORD,
+    WEBHOOK_URL: process.env.WEBHOOK_URL,
+    SITE_URL: process.env.SITE_URL,
+    CRON_PATTERN: process.env.CRON_PATTERN
 };
 
 
@@ -41,10 +41,29 @@ async function checkAvailability() {
     }
 }
 
-cron.schedule(CRON_PATTERN, checkAvailability);
+// No arquivo index.ts
+process.on('SIGINT', async () => {
+    logger.info('Recebido sinal de encerramento, limpando recursos...');
+    try {
+        // Limpar browser service
+        const browser = new BrowserService();
+        await browser.cleanup();
+
+        // Aguardar um pouco para garantir limpeza
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        logger.info('Recursos limpos com sucesso');
+        process.exit(0);
+    } catch (error) {
+        logger.error('Erro ao limpar recursos', error);
+        process.exit(1);
+    }
+});
+
+cron.schedule(CONFIG.CRON_PATTERN, checkAvailability);
 checkAvailability();
 
 logger.info('Service started', {
-    checkInterval: CRON_PATTERN,
+    checkInterval: CONFIG.CRON_PATTERN,
     webhookUrl: CONFIG.WEBHOOK_URL
 });
