@@ -7,7 +7,7 @@ import { execSync } from 'child_process';
 
 
 // Criar diretório de logs se não existir
-const screenshotsDir = path.join(__dirname, '..', 'screenshots');
+const screenshotsDir = path.join(__dirname, '../..', 'screenshots');
 if (!fs.existsSync(screenshotsDir)) {
     fs.mkdirSync(screenshotsDir);
 }
