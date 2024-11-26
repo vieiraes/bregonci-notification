@@ -143,4 +143,3 @@ MIT License - Veja o arquivo LICENSE para detalhes
 ## Autor
 
 Bruno Vieira - [GitHub](https://github.com/vieiraes)
-```
